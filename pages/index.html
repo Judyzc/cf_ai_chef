@@ -1,20 +1,92 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
-  <body>
-    <h1>Cloudflare AI Chat</h1>
-    <input id="msg" placeholder="Say something..." />
-    <button onclick="send()">Send</button>
-    <pre id="log"></pre>
-    <script>
-      async function send() {
-        const input = document.getElementById('msg').value;
-        const res = await fetch('/api', {
-          method: 'POST',
-          body: JSON.stringify({ input }),
-        });
-        const data = await res.json();
-        document.getElementById('log').textContent += "AI: " + data.output + "\n";
+<head>
+<meta charset="utf-8" />
+<title>Feeling → Abstract Art</title>
+<style>
+  body { font-family: system-ui, sans-serif; padding: 24px; }
+  #art { border: 1px solid #ddd; width: 800px; height: 600px; }
+  #log { white-space: pre-wrap; margin-top: 12px; }
+</style>
+</head>
+<body>
+  <h1>How are you feeling?</h1>
+  <input id="input" placeholder="I'm feeling..." style="width:400px" />
+  <button id="send">Create Art</button>
+  <div id="art"></div>
+  <pre id="log"></pre>
+
+<script>
+function rng(seed) {
+  let s = seed >>> 0;
+  return () => {
+    s = (s * 1664525 + 1013904223) >>> 0;
+    return s / 4294967296;
+  }
+}
+
+function buildSVG(spec, width = 800, height = 600) {
+  const { palette = ["#111","#eee"], style="minimal", seed=1, density=12, shapes=[] } = spec;
+  const rnd = rng(seed);
+  const elems = [];
+  if (Array.isArray(shapes) && shapes.length > 0) {
+    for (const s of shapes) {
+      if (s.type === "circle") {
+        const cx = s.cx ?? Math.floor(rnd()*width);
+        const cy = s.cy ?? Math.floor(rnd()*height);
+        const r  = s.r ?? Math.floor(rnd()*Math.min(width,height)/6);
+        const fill = s.fill ?? palette[Math.floor(rnd()*palette.length)];
+        const opacity = s.opacity ?? 0.6;
+        elems.push(`<circle cx="${cx}" cy="${cy}" r="${r}" fill="${fill}" fill-opacity="${opacity}" />`);
+      } else if (s.type === "rect") {
+        const x = s.x ?? Math.floor(rnd()*width);
+        const y = s.y ?? Math.floor(rnd()*height);
+        const w = s.w ?? Math.floor(rnd()*width/4);
+        const h = s.h ?? Math.floor(rnd()*height/6);
+        elems.push(`<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${s.fill||palette[Math.floor(rnd()*palette.length)]}" fill-opacity="${s.opacity||0.4}" rx="20" />`);
+      } else if (s.type === "ellipse") {
+        const cx = s.cx ?? Math.floor(rnd()*width);
+        const cy = s.cy ?? Math.floor(rnd()*height);
+        const rx = s.rx ?? Math.floor(rnd()*width/8);
+        const ry = s.ry ?? Math.floor(rnd()*height/10);
+        elems.push(`<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="${s.fill||palette[Math.floor(rnd()*palette.length)]}" fill-opacity="${s.opacity||0.5}" />`);
+      } else if (s.type === "path") {
+        elems.push(`<path d="${s.d}" fill="${s.fill||palette[Math.floor(rnd()*palette.length)]}" fill-opacity="${s.opacity||0.6}" />`);
       }
-    </script>
-  </body>
+    }
+  } else {
+    for (let i=0;i<density;i++){
+      const cx = Math.floor(rnd()*width);
+      const cy = Math.floor(rnd()*height);
+      const r = Math.floor((rnd()*0.5+0.1)*Math.min(width,height)/6);
+      const fill = palette[Math.floor(rnd()*palette.length)];
+      const opacity = (rnd()*0.6+0.2).toFixed(2);
+      elems.push(`<circle cx="${cx}" cy="${cy}" r="${r}" fill="${fill}" fill-opacity="${opacity}" />`);
+    }
+  }
+
+  const bg = palette.length>0 ? palette[0] : "#ffffff";
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
+    <rect width="100%" height="100%" fill="${bg}" />
+    ${elems.join("\n")}
+  </svg>`;
+}
+
+document.getElementById('send').addEventListener('click', async () => {
+  const text = (document.getElementById('input') as HTMLInputElement).value.trim();
+  if (!text) return;
+  document.getElementById('log').textContent = "Generating...";
+  try {
+    const res = await fetch('/api', { method: 'POST', headers: {'content-type':'application/json'}, body: JSON.stringify({ text }) });
+    const spec = await res.json();
+    document.getElementById('log').textContent = JSON.stringify(spec, null, 2);
+    const svg = buildSVG(spec, 800, 600);
+    document.getElementById('art').innerHTML = svg;
+  } catch (err) {
+    console.error(err);
+    document.getElementById('log').textContent = "Error: " + String(err);
+  }
+});
+</script>
+</body>
 </html>

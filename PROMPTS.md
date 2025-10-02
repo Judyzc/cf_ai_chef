@@ -2,3 +2,4 @@
 
 2) Why am getting this "persist" error from my Dockerfile? [pasted error]
 
+3) How do I set this up to return an abstract image based on someone's mood.

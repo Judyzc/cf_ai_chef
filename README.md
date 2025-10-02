@@ -15,6 +15,7 @@ docker run -it --rm \
   -v "$(pwd)/.wrangler/state":/app/.wrangler/state \
   cloudflare-ai-app
 ```
+This app can run, but isn't connected to an actual Cloudflare worker, since I couldn't understand how to set that up. 
 
 ### To deploy (not done)
 ```
