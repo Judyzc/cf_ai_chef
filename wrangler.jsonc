@@ -1,0 +1,34 @@
+{
+  // Project name
+  "name": "cloudflare-ai-app",
+
+  // Entrypoint
+  "main": "src/index.ts",
+
+  // Compatibility date: pick a recent date
+  "compatibility_date": "2025-10-01",
+
+  // Do not use workers_dev in this example (set as needed)
+  "workers_dev": true,
+
+  // Attach a KV namespace (replace id with your actual KV id after creating it)
+  "kv_namespaces": [
+    {
+      "binding": "MY_KV",
+      "id": "<KV_ID_GOES_HERE>"
+    }
+  ],
+
+  // Example env
+  "env": {
+    "staging": {
+      "name": "cloudflare-ai-app-staging",
+      "kv_namespaces": [
+        {
+          "binding": "MY_KV",
+          "id": "<STAGING_KV_ID>"
+        }
+      ]
+    }
+  }
+}

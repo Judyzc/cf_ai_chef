@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+  <body>
+    <h1>Cloudflare AI Chat</h1>
+    <input id="msg" placeholder="Say something..." />
+    <button onclick="send()">Send</button>
+    <pre id="log"></pre>
+    <script>
+      async function send() {
+        const input = document.getElementById('msg').value;
+        const res = await fetch('/api', {
+          method: 'POST',
+          body: JSON.stringify({ input }),
+        });
+        const data = await res.json();
+        document.getElementById('log').textContent += "AI: " + data.output + "\n";
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,9 @@
+{
+  "name": "cloudflare-ai-app",
+  "version": "0.0.1",
+  "type": "module",
+  "devDependencies": {
+    "wrangler": "^3.50.0",
+    "typescript": "^5.3.0"
+  }
+}
